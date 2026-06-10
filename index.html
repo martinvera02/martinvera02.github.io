@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Martín Vera Ceca — Portfolio</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; font-family: 'MS Sans Serif', Arial, sans-serif; font-size: 11px; overflow: hidden; }
+
+  #desktop {
+    width: 100vw; height: 100vh;
+    background: #008080;
+    position: relative; overflow: hidden;
+  }
+  #desktop::before {
+    content: ''; position: absolute; inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+    pointer-events: none; z-index: 9999;
+  }
+
+  .desktop-icon {
+    position: absolute; width: 72px; text-align: center;
+    cursor: pointer; padding: 4px;
+    border: 1px solid transparent; color: white; font-size: 11px;
+  }
+  .desktop-icon:hover { border: 1px dotted white; background: rgba(255,255,255,0.1); }
+  .desktop-icon .icon-img { width: 32px; height: 32px; margin: 0 auto 4px; display: flex; align-items: center; justify-content: center; font-size: 26px; }
+  .desktop-icon span { display: block; text-shadow: 1px 1px 2px #000; font-size: 10px; line-height: 1.3; }
+
+  .win95-window {
+    position: absolute; background: #c0c0c0;
+    border: 2px solid; border-color: #ffffff #808080 #808080 #ffffff;
+    box-shadow: 2px 2px 0 #000; min-width: 280px;
+    display: none; z-index: 100;
+  }
+  .win95-window.active { z-index: 200; }
+  .win95-window.visible { display: block; }
+
+  .title-bar {
+    background: linear-gradient(to right, #000080, #1084d0);
+    color: white; padding: 3px 4px;
+    display: flex; align-items: center; justify-content: space-between;
+    cursor: move; font-size: 11px; font-weight: bold;
+  }
+  .title-bar-title { display: flex; align-items: center; gap: 5px; }
+  .title-bar-buttons { display: flex; gap: 2px; }
+  .tb-btn {
+    width: 16px; height: 14px; background: #c0c0c0;
+    border: 1px solid; border-color: #ffffff #808080 #808080 #ffffff;
+    font-size: 9px; font-weight: bold; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; color: #000;
+  }
+  .tb-btn:active { border-color: #808080 #ffffff #ffffff #808080; }
+
+  .window-menu-bar {
+    background: #c0c0c0; border-bottom: 1px solid #808080;
+    padding: 1px 4px; display: flex; gap: 2px; font-size: 11px;
+  }
+  .menu-item { padding: 1px 6px; cursor: default; }
+  .menu-item:hover { background: #000080; color: white; }
+
+  .window-content { padding: 8px; background: #c0c0c0; overflow-y: auto; max-height: 460px; }
+  .window-statusbar {
+    border-top: 2px solid; border-color: #808080 #ffffff #ffffff #808080;
+    padding: 2px 6px; font-size: 10px; color: #444; display: flex; gap: 8px;
+  }
+  .statusbar-cell { border: 1px solid; border-color: #808080 #ffffff #ffffff #808080; padding: 1px 6px; }
+
+  .inset-box { background: #fff; border: 2px solid; border-color: #808080 #ffffff #ffffff #808080; padding: 8px; }
+
+  #taskbar {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 28px;
+    background: #c0c0c0; border-top: 2px solid #ffffff;
+    display: flex; align-items: center; gap: 2px; padding: 0 2px; z-index: 1000;
+  }
+  #start-btn {
+    height: 22px; padding: 0 8px; background: #c0c0c0;
+    border: 2px solid; border-color: #ffffff #808080 #808080 #ffffff;
+    font-size: 11px; font-weight: bold; cursor: pointer;
+    display: flex; align-items: center; gap: 4px;
+  }
+  #start-btn:active, #start-btn.pressed { border-color: #808080 #ffffff #ffffff #808080; }
+  .taskbar-sep { width: 2px; height: 20px; border-left: 1px solid #808080; border-right: 1px solid #ffffff; margin: 0 2px; }
+  .task-btn {
+    height: 22px; padding: 0 8px; background: #c0c0c0;
+    border: 2px solid; border-color: #ffffff #808080 #808080 #ffffff;
+    font-size: 10px; cursor: pointer; max-width: 120px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .task-btn.active-task { border-color: #808080 #ffffff #ffffff #808080; background: #b0b0b0; }
+  .task-btn:hover { background: #d0d0d0; }
+  #clock {
+    margin-left: auto; height: 22px; padding: 0 8px;
+    border: 2px solid; border-color: #808080 #ffffff #ffffff #808080;
+    font-size: 11px; display: flex; align-items: center; min-width: 60px; justify-content: center;
+  }
+
+  #start-menu {
+    position: absolute; bottom: 28px; left: 0; width: 180px;
+    background: #c0c0c0; border: 2px solid; border-color: #ffffff #808080 #808080 #ffffff;
+    box-shadow: 2px 2px 0 #000; display: none; z-index: 2000;
+  }
+  #start-menu.visible { display: block; }
+  .start-menu-header {
+    background: linear-gradient(to top, #000080, #1084d0); color: white;
+    padding: 6px 4px; writing-mode: vertical-rl; transform: rotate(180deg);
+    font-weight: bold; font-size: 13px; height: 120px; float: left; letter-spacing: 2px;
+  }
+  .start-menu-items { margin-left: 28px; }
+  .smi { padding: 5px 8px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 11px; border-bottom: 1px solid #b0b0b0; }
+  .smi:hover { background: #000080; color: white; }
+  .smi-icon { font-size: 16px; }
+
+  .window-content::-webkit-scrollbar { width: 16px; }
+  .window-content::-webkit-scrollbar-track { background: #c0c0c0; border: 1px solid; border-color: #808080 #fff #fff #808080; }
+  .window-content::-webkit-scrollbar-thumb { background: #c0c0c0; border: 2px solid; border-color: #fff #808080 #808080 #fff; }
+
+  .section-title { background: linear-gradient(to right, #000080, #1084d0); color: white; padding: 3px 8px; font-weight: bold; font-size: 11px; margin-bottom: 6px; }
+  .info-row { display: flex; gap: 4px; margin-bottom: 3px; font-size: 11px; }
+  .info-label { color: #000080; font-weight: bold; min-width: 70px; }
+
+  .project-card { border: 2px solid; border-color: #808080 #fff #fff #808080; margin-bottom: 8px; background: #d4d0c8; }
+  .project-header { background: #000080; color: white; padding: 3px 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 11px; }
+  .project-body { padding: 6px 8px; font-size: 11px; display: none; }
+  .project-body.open { display: block; }
+  .tag-list { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 4px; }
+  .tag { background: #000080; color: white; padding: 1px 5px; font-size: 9px; border: 1px solid #808080; }
+  .project-link { display: inline-block; margin-top: 5px; padding: 2px 8px; background: #c0c0c0; border: 2px solid; border-color: #fff #808080 #808080 #fff; font-size: 10px; cursor: pointer; color: #000080; text-decoration: none; font-weight: bold; }
+  .project-link:active { border-color: #808080 #fff #fff #808080; }
+
+  .skill-bar-row { margin-bottom: 5px; }
+  .skill-bar-label { font-size: 10px; margin-bottom: 1px; color: #000; }
+  .skill-bar-bg { height: 12px; background: #fff; border: 1px solid #808080; border-color: #808080 #fff #fff #808080; position: relative; }
+  .skill-bar-fill { height: 100%; background: repeating-linear-gradient(90deg, #000080 0px, #000080 6px, #1084d0 6px, #1084d0 12px); }
+  .skill-bar-pct { position: absolute; right: 3px; top: 0; font-size: 9px; line-height: 12px; color: #000; }
+
+  .exp-item { margin-bottom: 8px; border-left: 3px solid #000080; padding-left: 6px; }
+  .exp-title { font-weight: bold; font-size: 11px; }
+  .exp-company { color: #000080; font-size: 10px; }
+  .exp-date { color: #555; font-size: 10px; }
+  .exp-desc { font-size: 10px; margin-top: 2px; color: #333; }
+
+  .edu-item { margin-bottom: 6px; }
+  .edu-degree { font-weight: bold; font-size: 11px; }
+  .edu-school { color: #000080; font-size: 10px; }
+
+  .contact-btn { display: flex; align-items: center; gap: 6px; width: 100%; padding: 4px 8px; margin-bottom: 4px; background: #c0c0c0; border: 2px solid; border-color: #fff #808080 #808080 #fff; cursor: pointer; font-size: 11px; text-decoration: none; color: #000; }
+  .contact-btn:hover { background: #000080; color: white; }
+  .contact-btn:active { border-color: #808080 #fff #fff #808080; }
+
+  .about-avatar { width: 60px; height: 60px; background: linear-gradient(135deg, #000080, #1084d0); border: 2px solid; border-color: #fff #808080 #808080 #fff; display: flex; align-items: center; justify-content: center; font-size: 28px; float: left; margin: 0 8px 8px 0; }
+
+  .progress-box { margin: 4px 0; background: #fff; border: 1px solid #808080; height: 18px; position: relative; overflow: hidden; }
+  .progress-bar-anim { height: 100%; background: repeating-linear-gradient(90deg, #000080 0, #000080 6px, #1084d0 6px, #1084d0 12px); animation: loading 2s infinite; width: 40%; }
+  @keyframes loading { 0%{transform:translateX(-100%)} 100%{transform:translateX(350%)} }
+
+  .blink { animation: blink 1s step-end infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  #desktop-wallpaper-text { position: absolute; bottom: 40px; right: 10px; color: rgba(255,255,255,0.15); font-size: 10px; font-family: monospace; text-align: right; pointer-events: none; }
+</style>
+</head>
+<body>
+<div id="desktop">
+  <div id="desktop-wallpaper-text">C:\PORTFOLIO\MARTIN_VERA.EXE<br>BUILD 2026.06.10<br>ALL RIGHTS RESERVED</div>
+
+  <div class="desktop-icon" style="top:10px;left:10px" ondblclick="openWindow('about')">
+    <div class="icon-img">👨‍💻</div><span>Sobre Mí.exe</span>
+  </div>
+  <div class="desktop-icon" style="top:90px;left:10px" ondblclick="openWindow('projects')">
+    <div class="icon-img">📁</div><span>Proyectos</span>
+  </div>
+  <div class="desktop-icon" style="top:170px;left:10px" ondblclick="openWindow('skills')">
+    <div class="icon-img">⚙️</div><span>Skills.sys</span>
+  </div>
+  <div class="desktop-icon" style="top:250px;left:10px" ondblclick="openWindow('experience')">
+    <div class="icon-img">💼</div><span>Experiencia</span>
+  </div>
+  <div class="desktop-icon" style="top:330px;left:10px" ondblclick="openWindow('contact')">
+    <div class="icon-img">📧</div><span>Contacto</span>
+  </div>
+  <div class="desktop-icon" style="top:410px;left:10px" ondblclick="openWindow('education')">
+    <div class="icon-img">🎓</div><span>Educación</span>
+  </div>
+
+  <!-- ABOUT -->
+  <div class="win95-window" id="win-about" style="top:30px;left:100px;width:380px">
+    <div class="title-bar" onmousedown="startDrag(event,'win-about')">
+      <div class="title-bar-title"><span>👨‍💻</span> Sobre Mí — Martín Vera Ceca</div>
+      <div class="title-bar-buttons">
+        <div class="tb-btn" onclick="minimizeWindow('win-about')">_</div>
+        <div class="tb-btn" onclick="closeWindow('win-about')">✕</div>
+      </div>
+    </div>
+    <div class="window-menu-bar"><span class="menu-item">Archivo</span><span class="menu-item">Ver</span><span class="menu-item">Ayuda</span></div>
+    <div class="window-content" style="padding:10px">
+      <div class="inset-box">
+        <div class="about-avatar">MV</div>
+        <div style="font-size:13px;font-weight:bold;color:#000080">Martín Vera Ceca</div>
+        <div style="font-size:11px;color:#333;margin:2px 0">Full-Stack Developer · AI &amp; Data</div>
+        <div style="font-size:10px;color:#555;margin:2px 0">📍 Madrid, España · 23 años</div>
+        <div style="clear:both;padding-top:6px;font-size:10px;color:#333;line-height:1.5">
+          Desarrollador Full-Stack con experiencia en <b>React, Node.js y TypeScript</b>, graduado en <b>Inteligencia Artificial y Big Data</b>. Capaz de construir productos end-to-end: desde pipelines ETL y modelos ML hasta interfaces React en producción.
+        </div>
+        <div style="margin-top:8px">
+          <div class="section-title">▶ Estado actual</div>
+          <div style="font-size:10px">Cargando proyectos... <span class="blink">█</span></div>
+          <div class="progress-box"><div class="progress-bar-anim"></div></div>
+          <div style="font-size:10px;margin-top:4px">
+            🚀 LeagueHub — <span style="color:#000080">en desarrollo activo</span><br>
+            🚀 Gestión Imputaciones — <span style="color:#000080">en desarrollo activo</span>
+          </div>
+        </div>
+        <div style="margin-top:8px">
+          <div class="info-row"><span class="info-label">🌐 Inglés:</span> B2 Upper-Intermediate (EF, Dublin 2024)</div>
+          <div class="info-row"><span class="info-label">📦 GitHub:</span> <a href="https://github.com/martinvera02" style="color:#000080">github.com/martinvera02</a></div>
+        </div>
+      </div>
+    </div>
+    <div class="window-statusbar"><span class="statusbar-cell">Listo</span><span class="statusbar-cell">Madrid, España</span></div>
+  </div>
+
+  <!-- PROJECTS -->
+  <div class="win95-window" id="win-projects" style="top:20px;left:130px;width:440px">
+    <div class="title-bar" onmousedown="startDrag(event,'win-projects')">
+      <div class="title-bar-title"><span>📁</span> C:\PROYECTOS\ — Explorador</div>
+      <div class="title-bar-buttons">
+        <div class="tb-btn" onclick="minimizeWindow('win-projects')">_</div>
+        <div class="tb-btn" onclick="closeWindow('win-projects')">✕</div>
+      </div>
+    </div>
+    <div class="window-menu-bar"><span class="menu-item">Archivo</span><span class="menu-item">Edición</span><span class="menu-item">Ver</span><span class="menu-item">Favoritos</span><span class="menu-item">Ayuda</span></div>
+    <div class="window-content">
+      <div class="inset-box" style="margin-bottom:6px;font-size:10px;color:#555">📂 8 objetos — Haz clic en un proyecto para expandir</div>
+      <div class="project-card">
+        <div class="project-header" onclick="toggleProject(this)"><span>📁</span> LeagueHub — Plataforma Social<span style="margin-left:auto;font-size:10px">▼</span></div>
+        <div class="project-body open">Plataforma full-stack con ligas, rankings globales, chat en tiempo real, feed social y mercado con precios dinámicos. Reset de temporadas automatizado con GitHub Actions.
+          <div class="tag-list"><span class="tag">React 19</span><span class="tag">TypeScript</span><span class="tag">Supabase</span><span class="tag">Realtime</span><span class="tag">Tailwind</span><span class="tag">Framer Motion</span><span class="tag">Vercel</span></div>
+          <a class="project-link" href="https://github.com/martinvera02/leaguehub" target="_blank">🔗 Ver en GitHub</a>
+          <span style="font-size:9px;color:#555;margin-left:6px">Abril 2026 – Actualidad</span>
+        </div>
+      </div>
+      <div class="project-card">
+        <div class="project-header" onclick="toggleProject(this)"><span>📁</span> Gestión de Imputaciones — App Corporativa<span style="margin-left:auto;font-size:10px">▶</span></div>
+        <div class="project-body">App corporativa full-stack para gestión de horas con RBAC, notificaciones en tiempo real, dashboard de métricas y exportación de reportes.
+          <div class="tag-list"><span class="tag">React</span><span class="tag">TypeScript</span><span class="tag">Node.js</span><span class="tag">Supabase</span><span class="tag">PostgreSQL</span><span class="tag">RBAC</span></div>
+          <span style="font-size:9px;color:#555">Abril 2026 – Actualidad</span>
+        </div>
+      </div>
+      <div class="project-card">
+        <div class="project-header" onclick="toggleProject(this)"><span>📁</span> FaceEmotion Detector — Computer Vision<span style="margin-left:auto;font-size:10px">▶</span></div>
+        <div class="project-body">Sistema de detección de expresiones faciales en tiempo real con CNN entrenada sobre FER-2013 (~35.000 imágenes, 7 emociones). Integración con Amazon Rekognition y despliegue en AWS Lambda.
+          <div class="tag-list"><span class="tag">Python</span><span class="tag">TensorFlow</span><span class="tag">OpenCV</span><span class="tag">CNN</span><span class="tag">AWS Lambda</span><span class="tag">Rekognition</span></div>
+          <span style="font-size:9px;color:#555">Abr–Jun 2025</span>
+        </div>
+      </div>
+      <div class="project-card">
+        <div class="project-header" onclick="toggleProject(this)"><span>📁</span> HousePrice Predictor — Machine Learning<span style="margin-left:auto;font-size:10px">▶</span></div>
+        <div class="project-body">Modelo de regresión para predicción de precios de vivienda con MAE &lt;8%. Pipeline completo: EDA, feature engineering, Random Forest, XGBoost, Gradient Boosting. Desplegado en Azure ML como endpoint REST con MLflow.
+          <div class="tag-list"><span class="tag">Python</span><span class="tag">scikit-learn</span><span class="tag">XGBoost</span><span class="tag">Azure ML</span><span class="tag">MLflow</span></div>
+          <span style="font-size:9px;color:#555">Feb–Mar 2025</span>
+        </div>
+      </div>
+      <div class="project-card">
+        <div class="project-header" onclick="toggleProject(this)"><span>📁</span> SpainData Explorer — Dashboard<span style="margin-left:auto;font-size:10px">▶</span></div>
+        <div class="project-body">Dashboard interactivo con datos abiertos del INE. Pipeline ETL en Python, API REST propia con FastAPI, visualizaciones con D3.js y Recharts.
+          <div class="tag-list"><span class="tag">React</span><span class="tag">FastAPI</span><span class="tag">D3.js</span><span class="tag">Python</span><span class="tag">pandas</span></div>
+          <a class="project-link" href="https://github.com/martinvera02/spaindata-explorer" target="_blank">🔗 GitHub</a>
+          <span style="font-size:9px;color:#555;margin-left:6px">Ene–Mar 2025</span>
+        </div>
+      </div>
+      <div class="project-card">
+        <div class="project-header" onclick="toggleProject(this)"><span>📁</span> SalesInsight Dashboard — Big Data<span style="margin-left:auto;font-size:10px">▶</span></div>
+        <div class="project-body">Pipeline ETL completo sobre &gt;500.000 registros de ventas retail. Dashboard Streamlit + report Power BI. Automatización diaria con GitHub Actions.
+          <div class="tag-list"><span class="tag">Python</span><span class="tag">pandas</span><span class="tag">PostgreSQL</span><span class="tag">Streamlit</span><span class="tag">Power BI</span><span class="tag">GitHub Actions</span></div>
+          <span style="font-size:9px;color:#555">Nov 2024 – Ene 2025</span>
+        </div>
+      </div>
+      <div class="project-card">
+        <div class="project-header" onclick="toggleProject(this)"><span>📁</span> PriceRadar — Extensión Chrome<span style="margin-left:auto;font-size:10px">▶</span></div>
+        <div class="project-body">Extensión MV3 que detecta precios en e-commerce y los contrasta con historial vía APIs externas. Backend Node.js + Express como proxy con caché TTL.
+          <div class="tag-list"><span class="tag">React</span><span class="tag">Node.js</span><span class="tag">Chrome MV3</span><span class="tag">Express</span></div>
+          <a class="project-link" href="https://github.com/martinvera02/priceradar-extension" target="_blank">🔗 GitHub</a>
+          <span style="font-size:9px;color:#555;margin-left:6px">Oct–Dic 2024</span>
+        </div>
+      </div>
+      <div class="project-card">
+        <div class="project-header" onclick="toggleProject(this)"><span>📁</span> NovamindAcademy — TFG DAW<span style="margin-left:auto;font-size:10px">▶</span></div>
+        <div class="project-body">App web con Django para gestión de academia: roles diferenciados, facturación y reportes de rendimiento académico. Proyecto en equipo de 3 personas.
+          <div class="tag-list"><span class="tag">Django</span><span class="tag">Python</span><span class="tag">PostgreSQL</span><span class="tag">JavaScript</span></div>
+          <a class="project-link" href="https://github.com/martinvera02/NovamindAcademy" target="_blank">🔗 GitHub</a>
+          <span style="font-size:9px;color:#555;margin-left:6px">Mar–May 2024</span>
+        </div>
+      </div>
+    </div>
+    <div class="window-statusbar"><span class="statusbar-cell">8 objetos</span><span class="statusbar-cell">github.com/martinvera02</span></div>
+  </div>
+
+  <!-- SKILLS -->
+  <div class="win95-window" id="win-skills" style="top:40px;left:110px;width:350px">
+    <div class="title-bar" onmousedown="startDrag(event,'win-skills')">
+      <div class="title-bar-title"><span>⚙️</span> Skills.sys — Panel de Control</div>
+      <div class="title-bar-buttons">
+        <div class="tb-btn" onclick="minimizeWindow('win-skills')">_</div>
+        <div class="tb-btn" onclick="closeWindow('win-skills')">✕</div>
+      </div>
+    </div>
+    <div class="window-content" style="padding:10px">
+      <div class="section-title">▶ Frontend</div>
+      <div id="skill-bars-frontend"></div>
+      <div class="section-title" style="margin-top:8px">▶ Backend &amp; APIs</div>
+      <div id="skill-bars-backend"></div>
+      <div class="section-title" style="margin-top:8px">▶ IA &amp; Machine Learning</div>
+      <div id="skill-bars-ai"></div>
+      <div class="section-title" style="margin-top:8px">▶ Cloud &amp; DevOps</div>
+      <div id="skill-bars-cloud"></div>
+    </div>
+    <div class="window-statusbar"><span class="statusbar-cell">20+ tecnologías</span></div>
+  </div>
+
+  <!-- EXPERIENCE -->
+  <div class="win95-window" id="win-experience" style="top:50px;left:120px;width:380px">
+    <div class="title-bar" onmousedown="startDrag(event,'win-experience')">
+      <div class="title-bar-title"><span>💼</span> Experiencia Laboral</div>
+      <div class="title-bar-buttons">
+        <div class="tb-btn" onclick="minimizeWindow('win-experience')">_</div>
+        <div class="tb-btn" onclick="closeWindow('win-experience')">✕</div>
+      </div>
+    </div>
+    <div class="window-content" style="padding:10px">
+      <div class="inset-box">
+        <div class="exp-item">
+          <div class="exp-title">Técnico de Incidencias de Almacén</div>
+          <div class="exp-company">El Corte Inglés</div>
+          <div class="exp-date">📅 Oct 2024 – Ene 2025 · Valdemoro, España</div>
+          <div class="exp-desc">Resolución de incidencias de inventario mediante WMS Manhattan Associates en entorno de alto volumen. Seguimiento y trazabilidad de productos en tiempo real.</div>
+        </div>
+        <hr style="border:none;border-top:1px solid #808080;margin:8px 0">
+        <div class="exp-item">
+          <div class="exp-title">Desarrollador de Aplicaciones</div>
+          <div class="exp-company">Aleson ITC</div>
+          <div class="exp-date">📅 Mar 2024 – May 2024 · Madrid, España</div>
+          <div class="exp-desc">Desarrollo con Microsoft Power Platform: Power Automate, Power Apps y SharePoint Online. Implementación de flujos automatizados e integración con APIs REST.</div>
+          <div class="tag-list" style="margin-top:4px"><span class="tag">Power Automate</span><span class="tag">Power Apps</span><span class="tag">SharePoint</span><span class="tag">REST APIs</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="window-statusbar"><span class="statusbar-cell">2 posiciones</span></div>
+  </div>
+
+  <!-- EDUCATION -->
+  <div class="win95-window" id="win-education" style="top:60px;left:140px;width:360px">
+    <div class="title-bar" onmousedown="startDrag(event,'win-education')">
+      <div class="title-bar-title"><span>🎓</span> Educación &amp; Certificaciones</div>
+      <div class="title-bar-buttons">
+        <div class="tb-btn" onclick="minimizeWindow('win-education')">_</div>
+        <div class="tb-btn" onclick="closeWindow('win-education')">✕</div>
+      </div>
+    </div>
+    <div class="window-content" style="padding:10px">
+      <div class="inset-box">
+        <div class="edu-item">
+          <div class="edu-degree">🧠 Especialización en IA y Big Data</div>
+          <div class="edu-school">IES Maestre de Calatrava · Ciudad Real</div>
+          <div style="font-size:10px;color:#555">Sep 2024 – May 2025</div>
+          <div style="font-size:10px;color:#333;margin-top:2px">ML supervisado/no supervisado, deep learning, computer vision, NLP, cloud AWS &amp; Azure, Power BI, MLflow, LLMs.</div>
+          <div class="tag-list" style="margin-top:3px"><span class="tag">TensorFlow</span><span class="tag">scikit-learn</span><span class="tag">OpenCV</span><span class="tag">AWS</span><span class="tag">Azure</span></div>
+        </div>
+        <hr style="border:none;border-top:1px solid #808080;margin:8px 0">
+        <div class="edu-item">
+          <div class="edu-degree">💻 Grado Superior DAW</div>
+          <div class="edu-school">Colegio Valle del Miro · Valdemoro</div>
+          <div style="font-size:10px;color:#555">Sep 2022 – May 2024</div>
+          <div style="font-size:10px;color:#333;margin-top:2px">Full-stack web: HTML5, CSS3, JS, Java, PHP, SQL. Arquitectura MVC y APIs REST.</div>
+        </div>
+        <hr style="border:none;border-top:1px solid #808080;margin:8px 0">
+        <div class="edu-item">
+          <div class="edu-degree">🌐 B2 English Certificate</div>
+          <div class="edu-school">EF International Language Centers · Dublín</div>
+          <div style="font-size:10px;color:#555">Julio 2024</div>
+          <div style="font-size:10px;color:#333;margin-top:2px">B2 Upper-Intermediate. Capacidad de comunicación fluida en entornos laborales en inglés.</div>
+        </div>
+      </div>
+    </div>
+    <div class="window-statusbar"><span class="statusbar-cell">3 títulos/certificaciones</span></div>
+  </div>
+
+  <!-- CONTACT -->
+  <div class="win95-window" id="win-contact" style="top:70px;left:150px;width:300px">
+    <div class="title-bar" onmousedown="startDrag(event,'win-contact')">
+      <div class="title-bar-title"><span>📧</span> Contacto — Martín Vera</div>
+      <div class="title-bar-buttons">
+        <div class="tb-btn" onclick="minimizeWindow('win-contact')">_</div>
+        <div class="tb-btn" onclick="closeWindow('win-contact')">✕</div>
+      </div>
+    </div>
+    <div class="window-content" style="padding:10px">
+      <div class="inset-box" style="margin-bottom:8px;font-size:10px;text-align:center;color:#555">¿Quieres contactar? Elige un método:</div>
+      <a class="contact-btn" href="mailto:2002martinvc@gmail.com"><span style="font-size:16px">📧</span><div><div style="font-weight:bold">Email</div><div style="font-size:9px">2002martinvc@gmail.com</div></div></a>
+      <a class="contact-btn" href="https://github.com/martinvera02" target="_blank"><span style="font-size:16px">🐙</span><div><div style="font-weight:bold">GitHub</div><div style="font-size:9px">github.com/martinvera02</div></div></a>
+      <a class="contact-btn" href="https://www.linkedin.com/in/mart%C3%ADn-vera-ceca-955700229/" target="_blank"><span style="font-size:16px">💼</span><div><div style="font-weight:bold">LinkedIn</div><div style="font-size:9px">in/martín-vera-ceca</div></div></a>
+      <a class="contact-btn" href="tel:+34635993832"><span style="font-size:16px">📞</span><div><div style="font-weight:bold">Teléfono</div><div style="font-size:9px">+34 635 993 832</div></div></a>
+    </div>
+    <div class="window-statusbar"><span class="statusbar-cell">Disponible para trabajo</span></div>
+  </div>
+
+  <!-- Taskbar -->
+  <div id="taskbar">
+    <div id="start-btn" onclick="toggleStartMenu()"><span style="font-size:14px">🪟</span> Inicio</div>
+    <div class="taskbar-sep"></div>
+    <div id="taskbar-buttons"></div>
+    <div id="clock">00:00</div>
+  </div>
+
+  <!-- Start Menu -->
+  <div id="start-menu">
+    <div style="overflow:hidden">
+      <div class="start-menu-header">Martín Vera</div>
+      <div class="start-menu-items">
+        <div class="smi" onclick="openWindow('about');closeStartMenu()"><span class="smi-icon">👨‍💻</span> Sobre Mí</div>
+        <div class="smi" onclick="openWindow('projects');closeStartMenu()"><span class="smi-icon">📁</span> Proyectos</div>
+        <div class="smi" onclick="openWindow('skills');closeStartMenu()"><span class="smi-icon">⚙️</span> Skills</div>
+        <div class="smi" onclick="openWindow('experience');closeStartMenu()"><span class="smi-icon">💼</span> Experiencia</div>
+        <div class="smi" onclick="openWindow('education');closeStartMenu()"><span class="smi-icon">🎓</span> Educación</div>
+        <div class="smi" onclick="openWindow('contact');closeStartMenu()"><span class="smi-icon">📧</span> Contacto</div>
+        <div class="smi" style="margin-top:4px;border-top:2px solid #808080" onclick="closeAllWindows();closeStartMenu()"><span class="smi-icon">🔌</span> Apagar</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const wins = {
+  about: { id:'win-about', label:'Sobre Mí', icon:'👨‍💻' },
+  projects: { id:'win-projects', label:'Proyectos', icon:'📁' },
+  skills: { id:'win-skills', label:'Skills.sys', icon:'⚙️' },
+  experience: { id:'win-experience', label:'Experiencia', icon:'💼' },
+  education: { id:'win-education', label:'Educación', icon:'🎓' },
+  contact: { id:'win-contact', label:'Contacto', icon:'📧' }
+};
+const openWins = new Set();
+let topZ = 200, dragging = null, dragOffX = 0, dragOffY = 0;
+
+function openWindow(key) {
+  const w = wins[key], el = document.getElementById(w.id);
+  el.classList.add('visible','active');
+  el.style.zIndex = ++topZ;
+  openWins.add(key);
+  updateTaskbar();
+  if (!el.dataset.positioned) {
+    el.dataset.positioned = '1';
+    const dw = window.innerWidth, dh = window.innerHeight;
+    const ww = el.offsetWidth || 380, wh = el.offsetHeight || 300;
+    el.style.left = Math.max(10, (dw-ww)/2 + Math.random()*60-30) + 'px';
+    el.style.top = Math.max(10, (dh-wh)/2 + Math.random()*60-30) + 'px';
+  }
+}
+function closeWindow(id) {
+  document.getElementById(id).classList.remove('visible','active');
+  const key = Object.keys(wins).find(k=>wins[k].id===id);
+  if(key) openWins.delete(key);
+  updateTaskbar();
+}
+function minimizeWindow(id) { document.getElementById(id).classList.remove('visible'); updateTaskbar(); }
+function closeAllWindows() { Object.values(wins).forEach(w=>document.getElementById(w.id).classList.remove('visible','active')); openWins.clear(); updateTaskbar(); }
+function focusWindow(id) {
+  document.querySelectorAll('.win95-window').forEach(w=>w.classList.remove('active'));
+  const el=document.getElementById(id); el.classList.add('active','visible'); el.style.zIndex=++topZ;
+}
+function updateTaskbar() {
+  const tb = document.getElementById('taskbar-buttons');
+  tb.innerHTML = '';
+  openWins.forEach(key => {
+    const w = wins[key], el = document.getElementById(w.id);
+    const btn = document.createElement('div');
+    btn.className = 'task-btn' + (el.classList.contains('visible') ? ' active-task' : '');
+    btn.innerHTML = w.icon + ' ' + w.label;
+    btn.onclick = () => {
+      if(el.classList.contains('visible')&&el.classList.contains('active')) { el.classList.remove('visible'); btn.classList.remove('active-task'); }
+      else { el.classList.add('visible'); focusWindow(w.id); btn.classList.add('active-task'); }
+    };
+    tb.appendChild(btn);
+  });
+}
+function startDrag(e, id) {
+  e.preventDefault();
+  const el = document.getElementById(id); focusWindow(id); dragging = el;
+  const rect = el.getBoundingClientRect();
+  dragOffX = e.clientX - rect.left; dragOffY = e.clientY - rect.top;
+  document.onmousemove = doDrag; document.onmouseup = stopDrag;
+}
+function doDrag(e) {
+  if(!dragging) return;
+  let x = e.clientX - dragOffX, y = e.clientY - dragOffY;
+  x = Math.max(0, Math.min(x, window.innerWidth - dragging.offsetWidth));
+  y = Math.max(0, Math.min(y, window.innerHeight - 28 - dragging.offsetHeight));
+  dragging.style.left = x+'px'; dragging.style.top = y+'px';
+}
+function stopDrag() { dragging=null; document.onmousemove=null; document.onmouseup=null; }
+function toggleProject(header) {
+  const body = header.nextElementSibling, arrow = header.querySelector('span:last-child');
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open',!isOpen); arrow.textContent = isOpen?'▶':'▼';
+}
+function toggleStartMenu() { document.getElementById('start-menu').classList.toggle('visible'); document.getElementById('start-btn').classList.toggle('pressed'); }
+function closeStartMenu() { document.getElementById('start-menu').classList.remove('visible'); document.getElementById('start-btn').classList.remove('pressed'); }
+document.getElementById('desktop').addEventListener('mousedown', e => { if(!e.target.closest('#start-menu')&&!e.target.closest('#start-btn')) closeStartMenu(); });
+
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent = String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+}
+updateClock(); setInterval(updateClock, 10000);
+
+const skills = {
+  frontend: [['React / Next.js',92],['TypeScript',88],['Tailwind CSS',85],['Vite / JavaScript',90],['Framer Motion',72]],
+  backend: [['Node.js / Express',85],['Supabase / PostgreSQL',83],['FastAPI / Django',75],['REST APIs',90]],
+  ai: [['Python / pandas',88],['scikit-learn / XGBoost',80],['TensorFlow / Keras',75],['OpenCV',72],['NLP (NLTK/spaCy)',68]],
+  cloud: [['AWS (S3, Lambda, EC2)',76],['Azure ML',72],['Docker / GitHub Actions',78],['Vercel',88],['Power BI',70]]
+};
+function renderSkillBars(containerId, data) {
+  document.getElementById(containerId).innerHTML = data.map(([name,val])=>`
+    <div class="skill-bar-row">
+      <div class="skill-bar-label">${name}</div>
+      <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:${val}%"></div><span class="skill-bar-pct">${val}%</span></div>
+    </div>`).join('');
+}
+renderSkillBars('skill-bars-frontend', skills.frontend);
+renderSkillBars('skill-bars-backend', skills.backend);
+renderSkillBars('skill-bars-ai', skills.ai);
+renderSkillBars('skill-bars-cloud', skills.cloud);
+
+openWindow('about');
+</script>
+</body>
+</html>
