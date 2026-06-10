@@ -73,6 +73,11 @@
     position: absolute; bottom: 0; left: 0; right: 0; height: 28px;
     background: #c0c0c0; border-top: 2px solid #ffffff;
     display: flex; align-items: center; gap: 2px; padding: 0 2px; z-index: 1000;
+    overflow: hidden; flex-wrap: nowrap;
+  }
+  #taskbar-buttons {
+    display: flex; flex-direction: row; flex-wrap: nowrap;
+    align-items: center; gap: 2px; overflow: hidden; flex: 1;
   }
   #start-btn {
     height: 22px; padding: 0 8px; background: #c0c0c0;
@@ -472,10 +477,14 @@ function focusWindow(id) {
 function updateTaskbar() {
   const tb = document.getElementById('taskbar-buttons');
   tb.innerHTML = '';
+  const count = openWins.size;
+  const btnWidth = count > 4 ? Math.max(60, Math.floor((tb.parentElement.offsetWidth - 140) / count)) : 120;
   openWins.forEach(key => {
     const w = wins[key], el = document.getElementById(w.id);
     const btn = document.createElement('div');
     btn.className = 'task-btn' + (el.classList.contains('visible') ? ' active-task' : '');
+    btn.style.maxWidth = btnWidth + 'px';
+    btn.style.minWidth = '40px';
     btn.innerHTML = w.icon + ' ' + w.label;
     btn.onclick = () => {
       if(el.classList.contains('visible')&&el.classList.contains('active')) { el.classList.remove('visible'); btn.classList.remove('active-task'); }
